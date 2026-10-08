@@ -3,15 +3,22 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 0. Ensure Background Video Plays and Loops (Video Background Edition)
+    // 0. Ensure Background Video Plays and Loops with Error Fallback (Video Background Edition)
     const bgVideo = document.getElementById('bg-video');
     if (bgVideo) {
         bgVideo.muted = true;
         const playBgVideo = () => {
             if (bgVideo.paused) {
-                bgVideo.play().catch(() => {});
+                bgVideo.play().catch((err) => {
+                    console.warn('[Video] Background video autoplay pending user interaction:', err);
+                });
             }
         };
+
+        bgVideo.addEventListener('error', (e) => {
+            console.warn('[Video] Background video source load notification:', e);
+        }, true);
+
         playBgVideo();
         window.addEventListener('click', playBgVideo, { once: true, passive: true });
         window.addEventListener('keydown', playBgVideo, { once: true, passive: true });
