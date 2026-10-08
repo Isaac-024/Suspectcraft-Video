@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" width="240" height="180" shape-rendering="crispEdges">
+  <!-- Background -->
+  <rect width="240" height="180" fill="#08080d"/>
+  <rect x="6" y="6" width="228" height="168" fill="#12121a" stroke="#ff5400" stroke-width="3"/>
+  <rect x="10" y="10" width="220" height="160" fill="#171722"/>
+
+  <!-- Top Title Banner -->
+  <rect x="10" y="10" width="220" height="26" fill="#0c0c14" stroke="#ff5400" stroke-width="2"/>
+  <text x="120" y="27" text-anchor="middle" fill="#ff5400" font-family="'Courier New', monospace" font-size="11" font-weight="900" letter-spacing="1">CRUSHED PORTCULLIS</text>
+
+  <!-- Clue Graphic Area -->
+  <g>
+    
+  <!-- Massive Iron Gate Bars -->
+  <rect x="40" y="38" width="160" height="70" fill="#2b2d42" stroke="#12131c" stroke-width="3"/>
+  <line x1="70" y1="38" x2="70" y2="108" stroke="#8d99ae" stroke-width="6"/>
+  <line x1="100" y1="38" x2="100" y2="108" stroke="#8d99ae" stroke-width="6"/>
+  <line x1="130" y1="38" x2="130" y2="108" stroke="#8d99ae" stroke-width="6"/>
+  <line x1="160" y1="38" x2="160" y2="108" stroke="#8d99ae" stroke-width="6"/>
+  <!-- Crushed Stone under gate -->
+  <polygon points="30,110 210,110 190,145 50,145" fill="#e85d04"/>
+  <polygon points="60,112 85,100 100,120" fill="#6c757d"/>
+  <polygon points="140,112 165,98 175,122" fill="#6c757d"/>
+
+  </g>
+
+  <!-- Bottom Detail Tag -->
+  <rect x="16" y="152" width="208" height="16" fill="#0c0c14"/>
+  <text x="120" y="164" text-anchor="middle" fill="#8e8e9e" font-family="'Courier New', monospace" font-size="8" font-weight="bold" letter-spacing="1">EVIDENCE: HEAVY IRON GATE DROPPED</text>
+</svg>
