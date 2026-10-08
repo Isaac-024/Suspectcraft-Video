@@ -79,42 +79,50 @@ const Game = (function () {
         }
 
         if (session.status === 'running') {
-            // Running: Show persistent HUD timer, allow investigation and solving
+            // Running: Hide all lockout/waiting overlays, allow normal gameplay
             if (lockoutScreen) lockoutScreen.style.display = 'none';
             if (waitingScreen) waitingScreen.style.display = 'none';
-            if (hudTimer) hudTimer.style.display = 'inline-flex';
 
-            const tick = () => {
-                const now = Date.now();
-                const remaining = Math.max(0, (session.endTime || (now + 600000)) - now);
-                const totalSecs = Math.floor(remaining / 1000);
-                const mins = Math.floor(totalSecs / 60);
-                const secs = totalSecs % 60;
-                const timeStr = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            // Check mode:
+            if (session.mode === 'freeplay') {
+                // Freeplay mode: Hide the HUD timer completely, never trigger auto lockout
+                if (hudTimer) hudTimer.style.display = 'none';
+            } else {
+                // Timed mode: Display HUD countdown timer
+                if (hudTimer) hudTimer.style.display = 'inline-flex';
 
-                if (hudDigits) {
-                    hudDigits.textContent = timeStr;
-                    if (remaining <= 60000) {
-                        hudDigits.classList.add('urgent');
-                    } else {
-                        hudDigits.classList.remove('urgent');
+                const tick = () => {
+                    const now = Date.now();
+                    const remaining = Math.max(0, (session.endTime || (now + 600000)) - now);
+                    const totalSecs = Math.floor(remaining / 1000);
+                    const mins = Math.floor(totalSecs / 60);
+                    const secs = totalSecs % 60;
+                    const timeStr = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+                    if (hudDigits) {
+                        hudDigits.textContent = timeStr;
+                        if (remaining <= 60000) {
+                            hudDigits.classList.add('urgent');
+                        } else {
+                            hudDigits.classList.remove('urgent');
+                        }
                     }
-                }
 
-                if (remaining <= 0) {
-                    if (competitionTimerInterval) {
-                        clearInterval(competitionTimerInterval);
-                        competitionTimerInterval = null;
+                    if (remaining <= 0) {
+                        if (competitionTimerInterval) {
+                            clearInterval(competitionTimerInterval);
+                            competitionTimerInterval = null;
+                        }
+                        handleCompetitionSession({ ...session, status: 'locked' });
                     }
-                    handleCompetitionSession({ ...session, status: 'locked' });
-                }
-            };
+                };
 
-            tick();
-            competitionTimerInterval = setInterval(tick, 1000);
+                tick();
+                competitionTimerInterval = setInterval(tick, 1000);
+            }
 
         } else if (session.status === 'locked') {
-            // Locked: Immediately cut any active investigation and audio, show unclosable lockout screen
+            // Locked: Trigger the "TIME IS UP!" lockout modal with admin login button, stop BGM, disable accusations
             AudioEngine.stopBGM();
             if (hudTimer) hudTimer.style.display = 'none';
             if (waitingScreen) waitingScreen.style.display = 'none';
@@ -138,14 +146,10 @@ const Game = (function () {
             }
 
         } else {
-            // Waiting: Display overlay or prevent starting new cases
+            // Waiting: Show waiting screen/modal blocking early play: "WAITING FOR ORGANIZER TO START..."
             if (hudTimer) hudTimer.style.display = 'none';
             if (lockoutScreen) lockoutScreen.style.display = 'none';
-            
-            // If the student is already inside a case or briefing, show waiting screen
-            if (currentState !== STATES.MENU && currentState !== STATES.LOADING) {
-                if (waitingScreen) waitingScreen.style.display = 'flex';
-            }
+            if (waitingScreen) waitingScreen.style.display = 'flex';
         }
     }
 

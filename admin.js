@@ -134,22 +134,64 @@ const AdminPortal = (function () {
     }
 
     /**
-     * Start 10-Minute Global Competition
+     * Start Timed Competition with custom duration
      */
     async function startCompetition() {
-        const now = Date.now();
-        const durationMs = 10 * 60 * 1000;
+        const customInput = document.getElementById('custom-time-mins');
+        const defaultMins = (customInput && customInput.value && !isNaN(parseFloat(customInput.value)) && parseFloat(customInput.value) > 0)
+            ? customInput.value.trim()
+            : "10";
+
+        const inputMinutes = prompt("Enter competition duration in minutes:", defaultMins);
+        if (inputMinutes === null) return; // Cancelled
+        const minutes = parseFloat(inputMinutes);
+        if (!isNaN(minutes) && minutes > 0) {
+            if (customInput) customInput.value = minutes;
+            const now = Date.now();
+            const durationMs = minutes * 60 * 1000; // default 10 minutes = 600000 ms
+            const sessionData = {
+                mode: "timed",
+                status: "running",
+                startTime: now,
+                durationMs: durationMs,
+                endTime: now + durationMs
+            };
+
+            if (db && isFirebaseReady) {
+                try {
+                    await db.collection("gameControl").doc("session").set(sessionData);
+                    console.log(`[Admin] Timed competition started (${minutes} mins) in Firestore.`);
+                } catch (err) {
+                    console.warn("[Admin] Firestore write session warning:", err.message);
+                }
+            }
+
+            if (typeof FirebaseService !== 'undefined' && FirebaseService.broadcastCompetitionSession) {
+                FirebaseService.broadcastCompetitionSession(sessionData);
+            }
+
+            applyCompetitionSession(sessionData);
+        } else {
+            alert("Please enter a valid positive number of minutes.");
+        }
+    }
+
+    /**
+     * Start Untimed Free Play Mode
+     */
+    async function startFreePlay() {
         const sessionData = {
+            mode: "freeplay",
             status: "running",
-            startTime: now,
-            durationMs: durationMs,
-            endTime: now + durationMs
+            startTime: Date.now(),
+            durationMs: null,
+            endTime: null
         };
 
         if (db && isFirebaseReady) {
             try {
                 await db.collection("gameControl").doc("session").set(sessionData);
-                console.log("[Admin] 10-Min competition started in Firestore.");
+                console.log("[Admin] Free play session started in Firestore.");
             } catch (err) {
                 console.warn("[Admin] Firestore write session warning:", err.message);
             }
@@ -163,22 +205,51 @@ const AdminPortal = (function () {
     }
 
     /**
-     * Force Emergency Lock
+     * Force Emergency Lock / Lock Competition
      */
     async function forceLockCompetition() {
         const sessionData = {
+            mode: competitionSession.mode || "timed",
             status: "locked",
             startTime: competitionSession.startTime || Date.now(),
-            durationMs: competitionSession.durationMs || (10 * 60 * 1000),
+            durationMs: competitionSession.durationMs || 600000,
             endTime: Date.now()
         };
 
         if (db && isFirebaseReady) {
             try {
                 await db.collection("gameControl").doc("session").set(sessionData, { merge: true });
-                console.log("[Admin] Force lock updated in Firestore.");
+                console.log("[Admin] Competition locked in Firestore.");
             } catch (err) {
                 console.warn("[Admin] Firestore lock session warning:", err.message);
+            }
+        }
+
+        if (typeof FirebaseService !== 'undefined' && FirebaseService.broadcastCompetitionSession) {
+            FirebaseService.broadcastCompetitionSession(sessionData);
+        }
+
+        applyCompetitionSession(sessionData);
+    }
+
+    /**
+     * Reset Session to Lobby / Waiting State
+     */
+    async function resetToLobby() {
+        const sessionData = {
+            mode: "waiting",
+            status: "waiting",
+            startTime: Date.now(),
+            durationMs: null,
+            endTime: null
+        };
+
+        if (db && isFirebaseReady) {
+            try {
+                await db.collection("gameControl").doc("session").set(sessionData);
+                console.log("[Admin] Session reset to lobby/waiting in Firestore.");
+            } catch (err) {
+                console.warn("[Admin] Firestore reset session warning:", err.message);
             }
         }
 
@@ -222,7 +293,7 @@ const AdminPortal = (function () {
     }
 
     /**
-     * Apply Session State (Timer, Lock, Banner)
+     * Apply Session State (Timer, Lock, Banner, Status Indicator)
      */
     function applyCompetitionSession(sessionData) {
         if (!sessionData || !sessionData.status) return;
@@ -230,6 +301,7 @@ const AdminPortal = (function () {
 
         const timerDisplay = document.getElementById('admin-timer-display');
         const lockBanner = document.getElementById('admin-lock-banner');
+        const statusIndicator = document.getElementById('admin-status-indicator');
 
         if (competitionTimerInterval) {
             clearInterval(competitionTimerInterval);
@@ -240,48 +312,73 @@ const AdminPortal = (function () {
             isLeaderboardFrozen = false;
             if (lockBanner) lockBanner.style.display = 'none';
 
-            const tick = () => {
-                const now = Date.now();
-                const remaining = Math.max(0, (sessionData.endTime || (now + 600000)) - now);
-                const totalSeconds = Math.floor(remaining / 1000);
-                const mins = Math.floor(totalSeconds / 60);
-                const secs = totalSeconds % 60;
-                const formatted = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-
+            if (sessionData.mode === "freeplay") {
+                if (statusIndicator) {
+                    statusIndicator.textContent = "FREE PLAY ACTIVE";
+                    statusIndicator.className = "admin-status-indicator status-freeplay";
+                }
                 if (timerDisplay) {
-                    timerDisplay.textContent = formatted;
-                    timerDisplay.style.color = remaining <= 60000 ? '#ff5555' : '#fcdb38';
+                    timerDisplay.textContent = "FREE PLAY";
+                    timerDisplay.style.color = "#7be3ff";
                 }
+            } else {
+                // Timed mode (default)
+                const tick = () => {
+                    const now = Date.now();
+                    const remaining = Math.max(0, (sessionData.endTime || (now + 600000)) - now);
+                    const totalSeconds = Math.floor(remaining / 1000);
+                    const mins = Math.floor(totalSeconds / 60);
+                    const secs = totalSeconds % 60;
+                    const formatted = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 
-                if (remaining <= 0) {
-                    if (competitionTimerInterval) {
-                        clearInterval(competitionTimerInterval);
-                        competitionTimerInterval = null;
+                    if (statusIndicator) {
+                        statusIndicator.textContent = `RUNNING (${formatted} REMAINING)`;
+                        statusIndicator.className = "admin-status-indicator status-running";
                     }
-                    autoLockCompetition(sessionData);
-                }
-            };
 
-            tick();
-            competitionTimerInterval = setInterval(tick, 1000);
+                    if (timerDisplay) {
+                        timerDisplay.textContent = formatted;
+                        timerDisplay.style.color = remaining <= 60000 ? '#ff5555' : '#fcdb38';
+                    }
+
+                    if (remaining <= 0) {
+                        if (competitionTimerInterval) {
+                            clearInterval(competitionTimerInterval);
+                            competitionTimerInterval = null;
+                        }
+                        autoLockCompetition(sessionData);
+                    }
+                };
+
+                tick();
+                competitionTimerInterval = setInterval(tick, 1000);
+            }
 
         } else if (sessionData.status === "locked") {
+            isLeaderboardFrozen = true;
+            if (statusIndicator) {
+                statusIndicator.textContent = "LOCKED";
+                statusIndicator.className = "admin-status-indicator status-locked";
+            }
             if (timerDisplay) {
                 timerDisplay.textContent = '00:00';
                 timerDisplay.style.color = '#ff5555';
             }
-            isLeaderboardFrozen = true;
             if (lockBanner) {
                 lockBanner.style.display = 'block';
                 lockBanner.textContent = '🏆 COMPETITION CONCLUDED — FINAL LEADERBOARD LOCKED 🏆';
             }
         } else {
             // "waiting"
-            if (timerDisplay) {
-                timerDisplay.textContent = '10:00';
-                timerDisplay.style.color = '#fcdb38';
-            }
             isLeaderboardFrozen = false;
+            if (statusIndicator) {
+                statusIndicator.textContent = "WAITING";
+                statusIndicator.className = "admin-status-indicator status-waiting";
+            }
+            if (timerDisplay) {
+                timerDisplay.textContent = 'WAITING';
+                timerDisplay.style.color = '#ffd074';
+            }
             if (lockBanner) lockBanner.style.display = 'none';
         }
     }
@@ -826,7 +923,9 @@ const AdminPortal = (function () {
         closeAnswersAuthModal,
         closeAnswersModal,
         startCompetition,
+        startFreePlay,
         forceLockCompetition,
+        resetToLobby,
         applyCompetitionSession
     };
 })();

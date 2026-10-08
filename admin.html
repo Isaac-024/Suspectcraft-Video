@@ -567,6 +567,40 @@
             gap: 6px;
         }
 
+        .comp-input-group {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #0d0d14;
+            border: 2px solid #28283c;
+            padding: 3px 6px;
+        }
+
+        .comp-mins-input {
+            width: 52px;
+            background: #000000;
+            border: 2px solid #227744;
+            color: #55ffaa;
+            font-family: var(--font-pixel);
+            font-size: 13px;
+            text-align: center;
+            padding: 7px 4px;
+            outline: none;
+        }
+
+        .comp-mins-input:focus {
+            border-color: #55ffaa;
+            box-shadow: 0 0 8px rgba(85, 255, 170, 0.4);
+        }
+
+        .comp-input-unit {
+            font-size: 10px;
+            color: #88ffaa;
+            font-family: var(--font-pixel);
+            letter-spacing: 1px;
+            margin-right: 2px;
+        }
+
         .btn-comp-start {
             background: #143d20;
             color: #55ffaa;
@@ -591,6 +625,33 @@
         }
 
         .btn-comp-start:active {
+            transform: translateY(2px);
+        }
+
+        .btn-comp-freeplay {
+            background: #0f2c42;
+            color: #7be3ff;
+            border: 3px solid #1a5785;
+            box-shadow: inset 2px 2px 0 #7be3ff, inset -2px -2px 0 #081a29, 0 0 14px rgba(123, 227, 255, 0.3);
+            font-family: var(--font-pixel);
+            font-size: 11px;
+            padding: 12px 16px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.15s ease;
+            letter-spacing: 1px;
+        }
+
+        .btn-comp-freeplay:hover {
+            background: #18466b;
+            border-color: #7be3ff;
+            box-shadow: inset 2px 2px 0 #b3f1ff, inset -2px -2px 0 #081a29, 0 0 20px rgba(123, 227, 255, 0.55);
+            transform: translateY(-2px);
+        }
+
+        .btn-comp-freeplay:active {
             transform: translateY(2px);
         }
 
@@ -621,16 +682,89 @@
             transform: translateY(2px);
         }
 
+        .btn-comp-reset {
+            background: #362816;
+            color: #ffd074;
+            border: 3px solid #7a5823;
+            box-shadow: inset 2px 2px 0 #ffd074, inset -2px -2px 0 #1c1409, 0 0 10px rgba(255, 208, 116, 0.25);
+            font-family: var(--font-pixel);
+            font-size: 11px;
+            padding: 12px 16px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.15s ease;
+            letter-spacing: 1px;
+        }
+
+        .btn-comp-reset:hover {
+            background: #523c1d;
+            border-color: #ffd074;
+            box-shadow: inset 2px 2px 0 #ffe09e, inset -2px -2px 0 #1c1409, 0 0 18px rgba(255, 208, 116, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .btn-comp-reset:active {
+            transform: translateY(2px);
+        }
+
         .comp-control-right {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .comp-status-block, .comp-timer-block {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
         }
 
         .comp-timer-title {
             font-size: 10px;
             color: var(--text-dim);
             letter-spacing: 1px;
+        }
+
+        .admin-status-indicator {
+            font-family: var(--font-pixel);
+            font-size: 11px;
+            padding: 8px 14px;
+            border: 2px solid #555;
+            background: #101016;
+            display: inline-block;
+            letter-spacing: 1px;
+            text-align: center;
+            min-width: 140px;
+        }
+
+        .status-waiting {
+            color: #ffd074;
+            border-color: #b5892b;
+            background: #241c0c;
+        }
+
+        .status-freeplay {
+            color: #7be3ff;
+            border-color: #2a8bbb;
+            background: #0d283c;
+            box-shadow: 0 0 10px rgba(123, 227, 255, 0.25);
+        }
+
+        .status-running {
+            color: #55ffaa;
+            border-color: #227744;
+            background: #0c2b18;
+            box-shadow: 0 0 12px rgba(85, 255, 170, 0.3);
+        }
+
+        .status-locked {
+            color: #ff6666;
+            border-color: #aa2228;
+            background: #360f12;
+            box-shadow: 0 0 12px rgba(255, 102, 102, 0.3);
         }
 
         .admin-timer-display {
@@ -824,17 +958,37 @@
         <!-- Global Competition Control Bar -->
         <div id="competition-control-bar" class="competition-control-bar">
             <div class="comp-control-left">
-                <span class="comp-label">⚡ COMPETITION CONTROL:</span>
-                <button id="btn-start-competition" class="btn-comp-start" onclick="AdminPortal.startCompetition()">
-                    <span>▶</span> START 10-MIN COMPETITION
+                <span class="comp-label">⚡ SESSION CONTROLS:</span>
+
+                <div class="comp-input-group" title="Set competition duration in minutes">
+                    <input type="number" id="custom-time-mins" class="comp-mins-input" value="10" min="1" max="180" placeholder="10" title="Minutes">
+                    <span class="comp-input-unit">MIN</span>
+                    <button id="btn-start-competition" class="btn-comp-start" onclick="AdminPortal.startCompetition()">
+                        <span>⏱️</span> START TIMED EVENT
+                    </button>
+                </div>
+
+                <button id="btn-start-freeplay" class="btn-comp-freeplay" onclick="AdminPortal.startFreePlay()">
+                    <span>♾️</span> START FREE PLAY (NO TIMER)
                 </button>
+
                 <button id="btn-force-lock" class="btn-comp-lock" onclick="AdminPortal.forceLockCompetition()">
-                    <span>🔒</span> FORCE LOCK
+                    <span>🔒</span> LOCK COMPETITION
+                </button>
+
+                <button id="btn-reset-lobby" class="btn-comp-reset" onclick="AdminPortal.resetToLobby()">
+                    <span>🔄</span> RESET TO LOBBY / WAITING
                 </button>
             </div>
             <div class="comp-control-right">
-                <span class="comp-timer-title">REMAINING TIME:</span>
-                <span id="admin-timer-display" class="admin-timer-display">10:00</span>
+                <div class="comp-status-block">
+                    <span class="comp-timer-title">SESSION STATUS:</span>
+                    <span id="admin-status-indicator" class="admin-status-indicator status-waiting">WAITING</span>
+                </div>
+                <div class="comp-timer-block">
+                    <span class="comp-timer-title">TIMER:</span>
+                    <span id="admin-timer-display" class="admin-timer-display">10:00</span>
+                </div>
             </div>
         </div>
 
