@@ -253,10 +253,14 @@
     text-transform: uppercase;
 }
 
-.dim-tag-overworld { background: #285418; color: #a4f285; }
-.dim-tag-nether { background: #5c1214; color: #ff999c; }
-.dim-tag-end { background: #481f63; color: #dfa8ff; }
-.dim-tag-deepdark { background: #08333b; color: #72f7ff; }
+.dim-tag-overworld,
+.dim-tag-nether,
+.dim-tag-end,
+.dim-tag-deepdark {
+    background: var(--color-ishanya-dark, #B85318);
+    color: #ffffff;
+    border: 1px solid var(--color-ishanya-orange, #D96B27);
+}
 
 .case-card-title {
     font-size: 12px;

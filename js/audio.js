@@ -1,99 +1,251 @@
 /**
  * CASE: AARNA — AUDIO ENGINE (js/audio.js)
- * Video Background Edition — All audio and sound effects (SFX) are completely silenced.
+ * Video Background Edition — Restored interactive SFX with silenced level entry for Cases 1, 4, and 7.
+ * Features Web Audio API with pre-decoded PCM AudioBuffers for true zero-latency instant playback,
+ * eliminating browser hardware decoding spin-up delays.
  */
 
 const AudioEngine = (function() {
+    // Exact audio file mappings
+    const audioFiles = {
+        click: 'audio/minecraft_click.mp3',
+        continueGame: 'audio/teleport1_Cw1ot9l.mp3',
+        enterLevel1: 'audio/minecraft-cave-sound-10.mp3',
+        enterLevel4: 'audio/nether-portal-travil-sound.mp3',
+        enterLevel7: 'audio/end_portal_activation.mp3',
+        openAccuse: 'audio/minecraft-chest-open-and-close.mp3',
+        levelClear: 'audio/levelup.mp3',
+        gameComplete: 'audio/challenge_complete_uHsY1YS.mp3',
+        tntExplosion: 'audio/tnt-explosion.mp3'
+    };
+
+    // Entry sounds suppressed for specific levels
+    const SILENCED_ENTRY_LEVELS = [1, 4, 7];
+
+    // Web Audio API Context and pre-decoded raw PCM buffers
+    let audioCtx = null;
+    const decodedBuffers = {};
+
+    // HTML5 Audio fallback instances
+    const audioInstances = {};
+
+    // Click sound pool for rapid responsive clicks
+    const CLICK_POOL_SIZE = 4;
+    const clickPool = [];
+    let clickPoolIndex = 0;
+
     /**
-     * Initialize Audio Engine (Silenced in Video Background Edition)
+     * Initialize or resume Web Audio Context
      */
-    function init() {
-        console.log('[AudioEngine] Video Background Edition: All audio and sound effects (SFX) are silenced.');
+    function getAudioContext() {
+        if (!audioCtx && typeof window !== 'undefined') {
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            if (AudioContextClass) {
+                audioCtx = new AudioContextClass();
+            }
+        }
+        if (audioCtx && audioCtx.state === 'suspended') {
+            audioCtx.resume().catch(() => {});
+        }
+        return audioCtx;
     }
 
     /**
-     * Play Sound by key (Silenced)
+     * Pre-fetch and decode audio file into raw PCM buffer
+     */
+    async function preloadAndDecodeBuffer(key, url) {
+        if (typeof window === 'undefined' || typeof fetch === 'undefined') return;
+        try {
+            const response = await fetch(url);
+            const arrayBuffer = await response.arrayBuffer();
+            const ctx = getAudioContext();
+            if (ctx) {
+                ctx.decodeAudioData(arrayBuffer, (buffer) => {
+                    decodedBuffers[key] = buffer;
+                }, () => {});
+            }
+        } catch (e) {
+            // Web Audio fetch failed, HTML5 audio fallback remains active
+        }
+    }
+
+    function init() {
+        // 1. Initialize Web Audio Context
+        getAudioContext();
+
+        // 2. Preload HTML5 Audio instances & start Web Audio decoding
+        Object.keys(audioFiles).forEach(key => {
+            const url = audioFiles[key];
+            try {
+                if (typeof Audio !== 'undefined') {
+                    const aud = new Audio(url);
+                    aud.preload = 'auto';
+                    audioInstances[key] = aud;
+                }
+            } catch (e) {}
+
+            preloadAndDecodeBuffer(key, url);
+        });
+
+        // 3. Initialize click sound pool
+        for (let i = 0; i < CLICK_POOL_SIZE; i++) {
+            try {
+                if (typeof Audio !== 'undefined') {
+                    const clickAud = new Audio(audioFiles.click);
+                    clickAud.preload = 'auto';
+                    clickAud.volume = 0.65;
+                    clickPool.push(clickAud);
+                }
+            } catch (e) {}
+        }
+
+        // 4. Warm-up audio context on first user gesture
+        if (typeof window !== 'undefined') {
+            const warmUp = () => {
+                const ctx = getAudioContext();
+                if (ctx && ctx.state === 'suspended') {
+                    ctx.resume();
+                }
+                window.removeEventListener('click', warmUp);
+                window.removeEventListener('keydown', warmUp);
+                window.removeEventListener('touchstart', warmUp);
+            };
+            window.addEventListener('click', warmUp, { once: true, passive: true });
+            window.addEventListener('keydown', warmUp, { once: true, passive: true });
+            window.addEventListener('touchstart', warmUp, { once: true, passive: true });
+        }
+    }
+
+    /**
+     * Universal zero-latency sound player:
+     * - Uses Web Audio API AudioBufferSourceNode if decoded buffer is available (0ms delay)
+     * - Falls back to HTML5 Audio element with instant rewind (currentTime = 0; play();)
      */
     function playSound(key, volume = 0.8) {
-        // Silenced for Video Background Edition
+        try {
+            const ctx = getAudioContext();
+            if (ctx && decodedBuffers[key]) {
+                if (ctx.state === 'suspended') {
+                    ctx.resume();
+                }
+                const source = ctx.createBufferSource();
+                source.buffer = decodedBuffers[key];
+                const gainNode = ctx.createGain();
+                gainNode.gain.value = volume;
+                source.connect(gainNode);
+                gainNode.connect(ctx.destination);
+                source.start(0); // Exact 0ms immediate audio thread playback
+                return;
+            }
+
+            // HTML5 Fallback
+            let audio = audioInstances[key];
+            if (!audio && typeof Audio !== 'undefined') {
+                audio = new Audio(audioFiles[key]);
+                audioInstances[key] = audio;
+            }
+            if (audio) {
+                audio.volume = volume;
+                audio.currentTime = 0; // Reset audio position
+                const playPromise = audio.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(() => {});
+                }
+            }
+        } catch (e) {
+            console.warn(`[AudioEngine] Error playing sound ${key}:`, e);
+        }
     }
 
     /**
-     * 1. Button Click (Silenced)
+     * 1. Button Click (Trigger: clicked ANY button, clue card, suspect card, tab)
      */
     function playClick() {
-        // Silenced for Video Background Edition
+        if (decodedBuffers['click']) {
+            playSound('click', 0.65);
+        } else if (clickPool.length > 0) {
+            const audio = clickPool[clickPoolIndex];
+            clickPoolIndex = (clickPoolIndex + 1) % clickPool.length;
+            audio.currentTime = 0;
+            const playPromise = audio.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(() => {});
+            }
+        } else {
+            playSound('click', 0.65);
+        }
     }
 
-    /**
-     * 2. Continue Game (Silenced)
-     */
+    // 2. Continue Game (Trigger: clicked CONTINUE on main menu)
     function playContinue() {
-        // Silenced for Video Background Edition
+        playSound('continueGame', 0.85);
     }
 
-    /**
-     * 3. Enter Level 1 (Silenced)
-     */
+    // 3. Case Entry Stinger (Cases 1, 4, and 7 are suppressed/skipped)
+    function playCaseEnter(caseId) {
+        const numericId = Number(caseId);
+        if (SILENCED_ENTRY_LEVELS.includes(numericId)) {
+            return;
+        }
+        if (numericId === 1) {
+            playSound('enterLevel1', 0.9);
+        } else if (numericId === 4) {
+            playSound('enterLevel4', 0.9);
+        } else if (numericId === 7) {
+            playSound('enterLevel7', 1.0);
+        }
+    }
+
+    // Enter Level 1 (Overworld) - Suppressed per SILENCED_ENTRY_LEVELS
     function playEnterLevel1() {
-        // Silenced for Video Background Edition
+        if (SILENCED_ENTRY_LEVELS.includes(1)) return;
+        playSound('enterLevel1', 0.9);
     }
 
-    /**
-     * 4. Enter Level 4 (Silenced)
-     */
+    // Enter Level 4 (Nether Portal) - Suppressed per SILENCED_ENTRY_LEVELS
     function playEnterLevel4() {
-        // Silenced for Video Background Edition
+        if (SILENCED_ENTRY_LEVELS.includes(4)) return;
+        playSound('enterLevel4', 0.9);
     }
 
-    /**
-     * 5. Enter Level 7 / End Dimension (Silenced)
-     */
+    // Enter Level 7 / End Dimension - Suppressed per SILENCED_ENTRY_LEVELS
     function playEnterLevel7() {
-        // Silenced for Video Background Edition
+        if (SILENCED_ENTRY_LEVELS.includes(7)) return;
+        playSound('enterLevel7', 1.0);
     }
 
     function playEnterEndDimension() {
-        // Silenced for Video Background Edition
+        if (SILENCED_ENTRY_LEVELS.includes(7)) return;
+        playSound('enterLevel7', 1.0);
     }
 
-    /**
-     * 6. Open Accuse Tab (Silenced)
-     */
+    // 6. Open Accuse Tab (Trigger: clicks ACCUSE button)
     function playOpenAccuse() {
-        // Silenced for Video Background Edition
+        playSound('openAccuse', 0.85);
     }
 
-    /**
-     * 7. Level Clear (Silenced)
-     */
+    // 7. Level Clear (Trigger: solves Cases 1-9)
     function playLevelClear() {
-        // Silenced for Video Background Edition
+        playSound('levelClear', 0.85);
     }
 
-    /**
-     * 8. Game Complete (Silenced)
-     */
+    // 8. Game Complete (Trigger: solves Case 10)
     function playGameComplete() {
-        // Silenced for Video Background Edition
+        playSound('gameComplete', 1.0);
     }
 
-    /**
-     * 9. TNT Explosion (Silenced)
-     */
+    // 9. TNT Explosion (Trigger: wrong accusation submitted - ZERO LATENCY)
     function playTntExplosion() {
-        // Silenced for Video Background Edition
+        playSound('tntExplosion', 1.0);
     }
 
-    /**
-     * Background Music Engine (Silenced)
-     */
+    // BGM Engine (Silenced in Video Background Edition to avoid clashing with video)
     function playBGM(caseId) {
-        // Silenced for Video Background Edition
+        // Zero BGM for Video Background Edition
     }
 
     function stopBGM() {
-        // Silenced for Video Background Edition
+        // Zero BGM
     }
 
     return {
@@ -101,6 +253,7 @@ const AudioEngine = (function() {
         playSound,
         playClick,
         playContinue,
+        playCaseEnter,
         playEnterLevel1,
         playEnterLevel4,
         playEnterLevel7,
@@ -110,6 +263,7 @@ const AudioEngine = (function() {
         playGameComplete,
         playTntExplosion,
         playBGM,
-        stopBGM
+        stopBGM,
+        SILENCED_ENTRY_LEVELS
     };
 })();

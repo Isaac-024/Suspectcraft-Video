@@ -250,15 +250,11 @@ const Game = (function () {
 
         currentCase = targetCase;
 
-        // Special Animation Trigger for Level 10 (Skipped on phones for smooth mobile performance)
-        if (numericId === 10 && !isMobileDevice()) {
-            playLevel10Animation(() => {
-                transitionToBriefing(numericId);
-            });
-        } else {
-            transitionToBriefing(numericId);
-        }
+        // Transition directly to case briefing/investigation (post-Level 9 animation cutscene removed)
+        transitionToBriefing(numericId);
     }
+
+    const SILENCED_ENTRY_LEVELS = [1, 4, 7];
 
     function transitionToBriefing(numericId) {
         AudioEngine.stopBGM();
@@ -266,80 +262,19 @@ const Game = (function () {
         UI.renderBriefing(currentCase);
         UI.showScreen('briefing');
 
-        if (numericId === 1) {
-            AudioEngine.playEnterLevel1();
-        } else if (numericId === 4) {
-            AudioEngine.playEnterLevel4();
-        } else if (numericId === 7) {
-            AudioEngine.playEnterLevel7();
+        // Suppress entry sounds for Cases 1, 4, and 7
+        if (!SILENCED_ENTRY_LEVELS.includes(Number(numericId))) {
+            if (typeof AudioEngine.playCaseEnter === 'function') {
+                AudioEngine.playCaseEnter(numericId);
+            }
         }
     }
 
     /**
-     * Level 10 Video/Audio Sync (Plays full 22s video and audio completely, with optional skip button)
+     * Post-Level 9 Animation Video Bypassed directly
      */
     function playLevel10Animation(onComplete) {
-        if (isMobileDevice()) {
-            if (typeof onComplete === 'function') onComplete();
-            return;
-        }
-
-        const overlay = document.getElementById('animation-overlay');
-        const video = document.getElementById('lvl10-video');
-        const audio = document.getElementById('lvl10-audio');
-        const skipBtn = document.getElementById('btn-skip-anim');
-
-        if (!overlay || !video || !audio) {
-            if (typeof onComplete === 'function') onComplete();
-            return;
-        }
-
-        let finished = false;
-        let safetyTimer = null;
-
-        const finish = () => {
-            if (finished) return;
-            finished = true;
-            if (safetyTimer) clearTimeout(safetyTimer);
-            overlay.hidden = true;
-            try { video.pause(); } catch (e) {}
-            if (typeof onComplete === 'function') onComplete();
-        };
-
-        overlay.hidden = false;
-        video.currentTime = 0;
-        video.muted = true;
-        if (audio) {
-            audio.currentTime = 0;
-            audio.muted = true;
-            audio.volume = 0;
-        }
-
-        // Skip button handler
-        if (skipBtn) {
-            skipBtn.onclick = (e) => {
-                e.stopPropagation();
-                finish();
-            };
-        }
-
-        // Play video (muted, video background edition)
-        const playPromise = video.play();
-        if (playPromise !== undefined) {
-            playPromise.catch(e => {
-                console.log("Video autoplay blocked or unavailable:", e);
-                finish();
-            });
-        }
-
-        // When video reaches natural completion (~22s), finish cleanly
-        video.onended = () => {
-            console.log("[Level 10] Video finished playing completely.");
-            finish();
-        };
-
-        // Generous safety timer (45 seconds) so the 22-second video is never cut off prematurely
-        safetyTimer = setTimeout(finish, 45000);
+        if (typeof onComplete === 'function') onComplete();
     }
 
     /**

@@ -598,13 +598,6 @@
             <div class="tnt-warning-text">DEFENSE ACTIVATED! DETONATION IMMINENT!</div>
         </div>
 
-        <!-- 16. LEVEL 10 INTRODUCTORY ANIMATION OVERLAY -->
-        <div id="animation-overlay" class="animation-overlay" hidden aria-hidden="true">
-            <button id="btn-skip-anim" class="btn-skip-anim" aria-label="Skip Animation">SKIP ⏩</button>
-            <video id="lvl10-video" class="animation-video" src="animation/video.mp4" playsinline preload="auto" muted></video>
-            <audio id="lvl10-audio" src="animation/audio.mp4" preload="auto" muted></audio>
-        </div>
-
         <!-- 17. PERSISTENT TOP-CENTER COMPETITION HUD TIMER -->
         <div id="hud-competition-timer" class="hud-competition-timer" style="display: none;" aria-live="polite">
             <span class="hud-timer-icon">⏱️</span>
@@ -638,15 +631,15 @@
 
     <!-- Audio Preloader Elements for Zero-Latency Playback -->
     <div id="audio-preloader" aria-hidden="true" style="display:none;">
-        <audio id="snd-click" preload="none" src="audio/minecraft_click.mp3" muted></audio>
-        <audio id="snd-continue" preload="none" src="audio/teleport1_Cw1ot9l.mp3" muted></audio>
-        <audio id="snd-level1" preload="none" src="audio/minecraft-cave-sound-10.mp3" muted></audio>
-        <audio id="snd-level4" preload="none" src="audio/nether-portal-travil-sound.mp3" muted></audio>
-        <audio id="snd-level7" preload="none" src="audio/end_portal_activation.mp3" muted></audio>
-        <audio id="snd-accuse" preload="none" src="audio/minecraft-chest-open-and-close.mp3" muted></audio>
-        <audio id="snd-clear" preload="none" src="audio/levelup.mp3" muted></audio>
-        <audio id="snd-complete" preload="none" src="audio/challenge_complete_uHsY1YS.mp3" muted></audio>
-        <audio id="snd-tnt" preload="none" src="audio/tnt-explosion.mp3" muted></audio>
+        <audio id="snd-click" preload="auto" src="audio/minecraft_click.mp3"></audio>
+        <audio id="snd-continue" preload="auto" src="audio/teleport1_Cw1ot9l.mp3"></audio>
+        <audio id="snd-level1" preload="auto" src="audio/minecraft-cave-sound-10.mp3"></audio>
+        <audio id="snd-level4" preload="auto" src="audio/nether-portal-travil-sound.mp3"></audio>
+        <audio id="snd-level7" preload="auto" src="audio/end_portal_activation.mp3"></audio>
+        <audio id="snd-accuse" preload="auto" src="audio/minecraft-chest-open-and-close.mp3"></audio>
+        <audio id="snd-clear" preload="auto" src="audio/levelup.mp3"></audio>
+        <audio id="snd-complete" preload="auto" src="audio/challenge_complete_uHsY1YS.mp3"></audio>
+        <audio id="snd-tnt" preload="auto" src="audio/tnt-explosion.mp3"></audio>
     </div>
 
     <!-- Global Internet Cloud Relay & Firebase SDKs -->

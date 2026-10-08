@@ -1285,3 +1285,54 @@ body,
 .investigation-layout {
     background: transparent !important;
 }
+
+/* --------------------------------------------------------------------------
+   ISHANYA 26 / AARNA EVENT PALETTE (WARM BRAND ORANGE)
+   -------------------------------------------------------------------------- */
+:root {
+    --color-ishanya-orange: #D96B27;
+    --color-ishanya-dark: #B85318;
+    --color-ishanya-glow: rgba(217, 107, 39, 0.4);
+    
+    /* Override primary brand/accent variables */
+    --accent-color: var(--color-ishanya-orange);
+    --dim-accent: var(--color-ishanya-orange);
+    --btn-primary-bg: var(--color-ishanya-orange);
+    --btn-primary-border: #FF8F4D;
+}
+
+/* Unify dimension themes (Overworld, Nether, End) to Ishanya Orange */
+.dimension-overworld,
+.dimension-nether,
+.dimension-end,
+.dimension-village,
+.dimension-lava,
+.dimension-sky {
+    --dimension-accent: var(--color-ishanya-orange) !important;
+    --dimension-border: var(--color-ishanya-dark) !important;
+    border-color: var(--color-ishanya-orange) !important;
+}
+
+/* Accuse button, active tabs, and highlights */
+.btn-accuse,
+#btn-ready-accuse,
+.badge-status,
+.clue-card:hover,
+.evidence-card:hover,
+.suspect-card.selected,
+.dialog-header {
+    border-color: var(--color-ishanya-orange) !important;
+}
+
+.badge-status,
+.evidence-type-tag,
+.dialog-title {
+    color: var(--color-ishanya-orange) !important;
+}
+
+/* Glow effects */
+.clue-image-wrapper,
+.lockout-box {
+    border-color: var(--color-ishanya-orange) !important;
+    box-shadow: 0 0 15px var(--color-ishanya-glow) !important;
+}

@@ -19,6 +19,17 @@
     /* Default Current Background */
     --bg-current: none;
 
+    /* Ishanya 26 / AARNA Event Palette */
+    --color-ishanya-orange: #D96B27;
+    --color-ishanya-dark: #B85318;
+    --color-ishanya-glow: rgba(217, 107, 39, 0.4);
+    
+    /* Override primary brand/accent variables */
+    --accent-color: var(--color-ishanya-orange);
+    --dim-accent: var(--color-ishanya-orange);
+    --btn-primary-bg: var(--color-ishanya-orange);
+    --btn-primary-border: #FF8F4D;
+
     /* UI Palette */
     --ui-dark-bg: #111116;
     --ui-panel-bg: rgba(22, 21, 29, 0.92);
@@ -27,16 +38,16 @@
     --ui-border-light: #525266;
     --ui-text-main: #f0f0f5;
     --ui-text-muted: #a3a3bd;
-    --ui-text-highlight: #ffdd40;
+    --ui-text-highlight: var(--color-ishanya-orange);
 
     /* Voxel Bevel Accents */
     --bevel-top-light: #525266;
     --bevel-bottom-dark: #0b0b0f;
 
-    /* Dimension Accents */
-    --dim-primary: #388720;
-    --dim-accent: #78a7ff;
-    --dim-border-accent: #5b8c32;
+    /* Dimension Accents (Unified to Ishanya Orange) */
+    --dim-primary: var(--color-ishanya-orange);
+    --dim-accent: var(--color-ishanya-orange);
+    --dim-border-accent: var(--color-ishanya-dark);
 
     /* Button Colors */
     --btn-wood-bg: #855c34;
@@ -49,10 +60,10 @@
     --btn-stone-bot: #333333;
     --btn-stone-text: #ffffff;
 
-    --btn-gold-bg: #d49b28;
-    --btn-gold-top: #fcdb38;
-    --btn-gold-bot: #8f6213;
-    --btn-gold-text: #1a1202;
+    --btn-gold-bg: var(--color-ishanya-orange);
+    --btn-gold-top: #FF8F4D;
+    --btn-gold-bot: var(--color-ishanya-dark);
+    --btn-gold-text: #ffffff;
 
     --btn-red-bg: #9c2727;
     --btn-red-top: #d33838;
@@ -62,7 +73,7 @@
     /* Status Colors */
     --status-success: #3be055;
     --status-danger: #e63946;
-    --status-warning: #ffb703;
+    --status-warning: var(--color-ishanya-orange);
     --status-info: #00b4d8;
 
     /* Spacing */
@@ -74,61 +85,58 @@
 }
 
 /* --------------------------------------------------------------------------
-   DIMENSION THEMES (Video Background Edition)
+   DIMENSION THEMES (Ishanya 26 / AARNA Unified Orange Event Palette)
    -------------------------------------------------------------------------- */
 
-/* 1. MENU STATE (Underwater Theme — Strictly for Main Menu Lobby Screen) */
 body.state-menu,
 body.dimension-underwater,
-body[data-theme="underwater"] {
-    --bg-current: none;
-    --dim-primary: #1b6ca8;
-    --dim-accent: #5ec2ff;
-    --dim-border-accent: #3399cc;
-}
-
-/* 1b. CASE ARCHIVE STATE (Overworld Archive Theme) */
-body.state-archive {
-    --bg-current: none;
-    --dim-primary: #468c2d;
-    --dim-accent: #78d254;
-    --dim-border-accent: #6db34b;
-}
-
-/* 2. OVERWORLD (Cases 1-3) */
+body[data-theme="underwater"],
+body.state-archive,
 body.dimension-overworld,
-body[data-theme="overworld"] {
-    --bg-current: none;
-    --dim-primary: #468c2d;
-    --dim-accent: #78d254;
-    --dim-border-accent: #6db34b;
-}
-
-/* 3. NETHER (Cases 4-6) */
+body[data-theme="overworld"],
 body.dimension-nether,
-body[data-theme="nether"] {
-    --bg-current: none;
-    --dim-primary: #941e21;
-    --dim-accent: #ff6b35;
-    --dim-border-accent: #e25822;
-}
-
-/* 4. THE END (Cases 7-9) */
+body[data-theme="nether"],
 body.dimension-end,
-body[data-theme="end"] {
+body[data-theme="end"],
+body.dimension-deepdark,
+body[data-theme="deepdark"],
+.dimension-overworld,
+.dimension-nether,
+.dimension-end,
+.dimension-village,
+.dimension-lava,
+.dimension-sky {
     --bg-current: none;
-    --dim-primary: #803ca6;
-    --dim-accent: #d88eff;
-    --dim-border-accent: #b260e6;
+    --dim-primary: var(--color-ishanya-orange);
+    --dim-accent: var(--color-ishanya-orange);
+    --dim-border-accent: var(--color-ishanya-dark);
+    --dimension-accent: var(--color-ishanya-orange) !important;
+    --dimension-border: var(--color-ishanya-dark) !important;
+    border-color: var(--color-ishanya-orange) !important;
 }
 
-/* 5. THE SIFT / DEEP DARK (Case 10) */
-body.dimension-deepdark,
-body[data-theme="deepdark"] {
-    --bg-current: none;
-    --dim-primary: #008f85;
-    --dim-accent: #00ffcc;
-    --dim-border-accent: #00d9b6;
+/* Accuse button, active tabs, and highlights */
+.btn-accuse,
+#btn-ready-accuse,
+.badge-status,
+.clue-card:hover,
+.evidence-card:hover,
+.suspect-card.selected,
+.dialog-header {
+    border-color: var(--color-ishanya-orange) !important;
+}
+
+.badge-status,
+.evidence-type-tag,
+.dialog-title {
+    color: var(--color-ishanya-orange) !important;
+}
+
+/* Glow effects */
+.clue-image-wrapper,
+.lockout-box {
+    border-color: var(--color-ishanya-orange) !important;
+    box-shadow: 0 0 15px var(--color-ishanya-glow) !important;
 }
 
 /* --------------------------------------------------------------------------
